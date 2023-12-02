@@ -1,4 +1,4 @@
-package ru.gb.lesson2.hw;
+package ru.gb;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
