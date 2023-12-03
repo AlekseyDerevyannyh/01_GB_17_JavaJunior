@@ -4,6 +4,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class TestProcessor {
@@ -27,15 +28,34 @@ public class TestProcessor {
             throw new RuntimeException("Не удалось создать объект класса \"" + testClass.getName() + "\"");
         }
 
-        List<Method> methods = new ArrayList<>();
+        List<Method> beforeMethods = new ArrayList();
         for (Method method : testClass.getDeclaredMethods()) {
-            if (method.isAnnotationPresent(Test.class)) {
+            if (method.isAnnotationPresent(BeforeEach.class)) {
                 checkTestMethod(method);
-                methods.add(method);
+                beforeMethods.add(method);
             }
         }
+        beforeMethods.forEach(it -> runTest(it, testObj));
 
-        methods.forEach(it -> runTest(it, testObj));
+        List<OrderMethod> methods = new ArrayList<>();
+        for (Method method : testClass.getDeclaredMethods()) {
+            if (method.isAnnotationPresent(Test.class) && !method.isAnnotationPresent(Skip.class)) {
+                checkTestMethod(method);
+                int order = method.getAnnotation(Test.class).order();
+                methods.add(new OrderMethod(order, method));
+            }
+        }
+        Collections.sort(methods);
+        methods.forEach(it -> runTest(it.getMethod(), testObj));
+
+        List<Method> afterMethods = new ArrayList();
+        for (Method method : testClass.getDeclaredMethods()) {
+            if (method.isAnnotationPresent(AfterEach.class)) {
+                checkTestMethod(method);
+                afterMethods.add(method);
+            }
+        }
+        afterMethods.forEach(it -> runTest(it, testObj));
     }
 
     private static void checkTestMethod(Method method) {
@@ -53,5 +73,4 @@ public class TestProcessor {
 
         }
     }
-
 }
