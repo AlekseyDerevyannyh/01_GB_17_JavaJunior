@@ -84,9 +84,9 @@ public class Server {
         }
     }
 
-    private static void sendMessageAllClients(String message, long id) {
+    private static void sendMessageAllClients(String message, long sourceId) {
         for (Map.Entry<Long, SocketWrapper> client1 : clients.entrySet()) {
-            if (client1.getKey() != id) {
+            if (client1.getKey() != sourceId) {
                 client1.getValue().getOutput().println(message);
             }
         }
